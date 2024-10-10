@@ -17,6 +17,7 @@ package etcdserver
 import (
 	"context"
 	"encoding/json"
+	errorspkg "errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -29,6 +30,7 @@ import (
 
 	"github.com/coreos/go-semver/semver"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
@@ -387,7 +389,7 @@ func TestApplyConfChangeError(t *testing.T) {
 			cluster: cl,
 		}
 		_, err := srv.applyConfChange(tt.cc, nil, true)
-		if err != tt.werr {
+		if !errorspkg.Is(err, tt.werr) {
 			t.Errorf("#%d: applyConfChange error = %v, want %v", i, err, tt.werr)
 		}
 		cc := raftpb.ConfChange{Type: tt.cc.Type, NodeID: raft.None, Context: tt.cc.Context}
@@ -1532,9 +1534,51 @@ func TestWaitAppliedIndex(t *testing.T) {
 
 			err := s.waitAppliedIndex()
 
-			if err != tc.ExpectedError {
+			if !errorspkg.Is(err, tc.ExpectedError) {
 				t.Errorf("Unexpected error, want (%v), got (%v)", tc.ExpectedError, err)
 			}
 		})
+	}
+}
+
+func TestIsActive(t *testing.T) {
+	cases := []struct {
+		name                  string
+		tickMs                uint
+		durationSinceLastTick time.Duration
+		expectActive          bool
+	}{
+		{
+			name:                  "1.5*tickMs,active",
+			tickMs:                100,
+			durationSinceLastTick: 150 * time.Millisecond,
+			expectActive:          true,
+		},
+		{
+			name:                  "2*tickMs,active",
+			tickMs:                200,
+			durationSinceLastTick: 400 * time.Millisecond,
+			expectActive:          true,
+		},
+		{
+			name:                  "4*tickMs,not active",
+			tickMs:                150,
+			durationSinceLastTick: 600 * time.Millisecond,
+			expectActive:          false,
+		},
+	}
+
+	for _, tc := range cases {
+		s := EtcdServer{
+			Cfg: config.ServerConfig{
+				TickMs: tc.tickMs,
+			},
+			r: raftNode{
+				tickMu:       new(sync.RWMutex),
+				latestTickTs: time.Now().Add(-tc.durationSinceLastTick),
+			},
+		}
+
+		require.Equal(t, tc.expectActive, s.isActive())
 	}
 }

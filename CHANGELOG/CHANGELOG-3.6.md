@@ -40,6 +40,7 @@ See [code changes](https://github.com/etcd-io/etcd/compare/v3.5.0...v3.6.0).
 - Add command to generate [shell completion](https://github.com/etcd-io/etcd/pull/13142).
 - Add `migrate` command for downgrading/upgrading etcd data dir files.
 - Add [optional --bump-revision and --mark-compacted flag to etcdutl snapshot restore operation](https://github.com/etcd-io/etcd/pull/16029).
+- Add [hashkv](https://github.com/etcd-io/etcd/pull/15965) command to print hash of keys and values up to given revision
 - Removed [legacy etcdutl backup](https://github.com/etcd-io/etcd/pull/16662)
 
 ### Package `clientv3`
@@ -97,8 +98,8 @@ See [List of metrics](https://etcd.io/docs/latest/metrics/) for all metrics per 
 - Add [`etcd_server_range_duration_seconds`](https://github.com/etcd-io/etcd/pull/17983).
 
 ### Go
-- Require [Go 1.22+](https://github.com/etcd-io/etcd/pull/16594).
-- Compile with [Go 1.22+](https://go.dev/doc/devel/release#go1.21.minor). Please refer to [gc-guide](https://go.dev/doc/gc-guide) to configure `GOGC` and `GOMEMLIMIT` properly. 
+- Require [Go 1.23+](https://github.com/etcd-io/etcd/pull/16594).
+- Compile with [Go 1.23+](https://go.dev/doc/devel/release#go1.21.minor). Please refer to [gc-guide](https://go.dev/doc/gc-guide) to configure `GOGC` and `GOMEMLIMIT` properly. 
 
 ### Other
 
